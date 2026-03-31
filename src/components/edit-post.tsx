@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { getAuthUser } from "@/lib/auth";
-import type { Post } from "@/lib/types";
+import { RichEditor } from "./rich-editor";
+import type { Post, ContentBlock } from "@/lib/types";
 
 const CATEGORIES = ["뷰티", "테크", "식품", "패션", "생활", "건강"];
 
 export function EditPost({ id }: { id: string }) {
   const router = useRouter();
-  const [content, setContent] = useState("");
+  const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [category, setCategory] = useState("");
   const [tagsInput, setTagsInput] = useState("");
   const [error, setError] = useState("");
@@ -27,7 +28,12 @@ export function EditPost({ id }: { id: string }) {
           setError("본인의 게시글만 수정할 수 있습니다");
           return;
         }
-        setContent(post.content);
+        // Load blocks, fallback to content as single text block
+        if (post.blocks && post.blocks.length > 0) {
+          setBlocks(post.blocks as ContentBlock[]);
+        } else {
+          setBlocks([{ type: "text", value: post.content }]);
+        }
         setCategory(post.category || "");
         setTagsInput(post.tags.join(", "));
       })
@@ -35,10 +41,12 @@ export function EditPost({ id }: { id: string }) {
       .finally(() => setFetching(false));
   }, [id, router]);
 
+  const hasContent = blocks.some((b) => b.type === "text" && b.value.trim());
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const user = getAuthUser();
-    if (!user) return;
+    if (!user || !hasContent) return;
     setError("");
     setLoading(true);
 
@@ -49,7 +57,7 @@ export function EditPost({ id }: { id: string }) {
         method: "PUT",
         body: JSON.stringify({
           author_id: user.id,
-          content,
+          blocks,
           category: category || null,
           tags: tags.length > 0 ? tags : null,
         }),
@@ -70,7 +78,7 @@ export function EditPost({ id }: { id: string }) {
     );
   }
 
-  if (error && !content) {
+  if (error && blocks.length === 0) {
     return <div className="py-20 text-center text-muted">{error}</div>;
   }
 
@@ -85,13 +93,7 @@ export function EditPost({ id }: { id: string }) {
           </div>
         )}
 
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          required
-          rows={6}
-          className="rounded-lg border border-border bg-background px-4 py-3 text-sm outline-none focus:border-accent resize-none"
-        />
+        <RichEditor initialBlocks={blocks} onChange={setBlocks} />
 
         <div>
           <label className="block text-xs text-muted mb-1">카테고리</label>
@@ -102,9 +104,7 @@ export function EditPost({ id }: { id: string }) {
                 type="button"
                 onClick={() => setCategory(category === cat ? "" : cat)}
                 className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                  category === cat
-                    ? "bg-accent text-white"
-                    : "border border-border text-muted hover:bg-border"
+                  category === cat ? "bg-accent text-white" : "border border-border text-muted hover:bg-border"
                 }`}
               >
                 {cat}
@@ -133,7 +133,7 @@ export function EditPost({ id }: { id: string }) {
           </button>
           <button
             type="submit"
-            disabled={loading || !content.trim()}
+            disabled={loading || !hasContent}
             className="flex-1 rounded-lg bg-accent py-3 text-sm font-semibold text-white hover:bg-accent-hover transition-colors disabled:opacity-50"
           >
             {loading ? "수정 중..." : "수정하기"}

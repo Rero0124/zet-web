@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { getAuthUser } from "@/lib/auth";
 import { trackImpression, trackClick, trackDwell } from "@/lib/tracker";
+import { BlockRenderer } from "./block-renderer";
 import type { Post } from "@/lib/types";
 
 export function PostCard({ post }: { post: Post }) {
@@ -15,6 +16,18 @@ export function PostCard({ post }: { post: Post }) {
   const ref = useRef<HTMLElement>(null);
   const dwellStart = useRef<number | null>(null);
   const impressed = useRef(false);
+
+  // Load user's reaction status
+  useEffect(() => {
+    const user = getAuthUser();
+    if (!user) return;
+    api<{ liked: boolean; bookmarked: boolean }>(`/posts/${post.id}/status?user_id=${user.id}`)
+      .then((res) => {
+        setLiked(res.liked);
+        setBookmarked(res.bookmarked);
+      })
+      .catch(() => {});
+  }, [post.id]);
 
   // Intersection Observer for impression + dwell tracking
   useEffect(() => {
@@ -80,9 +93,13 @@ export function PostCard({ post }: { post: Post }) {
             {post.category}
           </span>
         )}
-        <p className="text-[15px] leading-relaxed whitespace-pre-wrap">
-          {post.content}
-        </p>
+        {post.blocks && post.blocks.length > 0 ? (
+          <BlockRenderer blocks={post.blocks} />
+        ) : (
+          <p className="text-[15px] leading-relaxed whitespace-pre-wrap">
+            {post.content}
+          </p>
+        )}
         {post.tags.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5">
             {post.tags.map((tag) => (

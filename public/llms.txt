@@ -1,0 +1,43 @@
+# Zet (제트) — 제품 트렌드
+
+> 광고만을 위한 SNS. 기업이 제품 게시글(광고)을 올리고, 사용자가 실제 제품을 사용해보고 리뷰(별점+텍스트)를 남기며, 인기 있는 제품이 더 자주 노출되는 플랫폼.
+
+## API for AI
+
+Zet provides structured JSON endpoints optimized for AI consumption.
+All endpoints are prefixed with `/ai/` and require no authentication.
+
+### Search products
+GET /ai/search?q={query}&limit={n}
+
+Search for products by keyword. Returns matching products with review summaries and top reviews.
+
+### Product detail
+GET /ai/product/{uuid}
+
+Get full product information including all reviews, ratings, and company info.
+
+### Trending products
+GET /ai/trending?period={day|week|month}&category={name}&limit={n}
+
+Get currently trending products and keywords. Period defaults to "week".
+
+### Category products
+GET /ai/category/{name}
+
+Get top products in a category with review summaries.
+Available categories: 뷰티, 테크, 식품, 패션, 생활, 건강
+
+## Data model
+
+- **Product (게시글)**: Text-based product introduction posted by verified businesses. Includes category, tags, engagement metrics (likes, reviews, bookmarks, impressions).
+- **Review (리뷰)**: Star rating (1-5) + text review by real users who tried the product.
+- **Trend**: Rankings based on actual user interactions (likes, reviews, clicks, dwell time), filterable by demographics (age group, gender, region).
+
+## Response format
+
+All `/ai/*` endpoints return JSON with:
+- `source`: Attribution string
+- Structured product data with engagement metrics
+- Review summaries (total, avg_rating, positive/negative counts)
+- Individual review texts with ratings and dates
