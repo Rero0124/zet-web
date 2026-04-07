@@ -266,11 +266,11 @@ export function MentionEditor({
   }
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative flex-1 min-w-0">
       <div className="relative">
         {isEmpty && placeholder && (
           <div
-            className="pointer-events-none absolute inset-0 px-4 py-2.5 text-sm text-muted/60"
+            className="pointer-events-none absolute inset-0 px-4 py-2.5 text-sm text-muted/60 truncate"
             aria-hidden
           >
             {placeholder}

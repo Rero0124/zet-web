@@ -84,7 +84,7 @@ export function ReviewSection({
           />
           <button
             type="submit"
-            className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-hover transition-colors"
+            className="shrink-0 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-hover transition-colors"
           >
             등록
           </button>
@@ -118,10 +118,10 @@ export function ReviewSection({
                         onChange={setEditText}
                         className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
                       />
-                      <button onClick={() => handleEdit(r.id)} className="rounded-md bg-accent px-3 py-2 text-xs font-medium text-white">
+                      <button onClick={() => handleEdit(r.id)} className="shrink-0 rounded-md bg-accent px-3 py-2 text-xs font-medium text-white">
                         저장
                       </button>
-                      <button onClick={() => setEditingId(null)} className="rounded-md border border-border px-3 py-2 text-xs font-medium text-muted">
+                      <button onClick={() => setEditingId(null)} className="shrink-0 rounded-md border border-border px-3 py-2 text-xs font-medium text-muted">
                         취소
                       </button>
                     </div>

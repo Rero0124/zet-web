@@ -551,7 +551,7 @@ function QuestionItem({
                 <button
                   type="submit"
                   disabled={submitting || !answerContent.trim()}
-                  className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover transition-colors disabled:opacity-50"
+                  className="shrink-0 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover transition-colors disabled:opacity-50"
                 >
                   답변
                 </button>
