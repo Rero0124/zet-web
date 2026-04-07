@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { api } from "@/lib/api";
 import { getAuthUser } from "@/lib/auth";
+import { MentionText } from "./mention-text";
+import { MentionInput } from "./mention-input";
 import { MediaUpload } from "./media-upload";
 import { MediaGallery } from "./media-gallery";
 import type { Reaction } from "@/lib/types";
@@ -74,12 +76,11 @@ export function ReviewSection({
           </div>
         </div>
         <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="리뷰를 남겨보세요"
+          <MentionInput
+            placeholder="리뷰를 남겨보세요 (@로 유저 태그 가능)"
             value={reviewText}
-            onChange={(e) => setReviewText(e.target.value)}
-            className="flex-1 rounded-lg border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-accent"
+            onChange={setReviewText}
+            className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-accent"
           />
           <button
             type="submit"
@@ -112,11 +113,10 @@ export function ReviewSection({
                       ))}
                     </div>
                     <div className="flex gap-2">
-                      <input
-                        type="text"
+                      <MentionInput
                         value={editText}
-                        onChange={(e) => setEditText(e.target.value)}
-                        className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+                        onChange={setEditText}
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
                       />
                       <button onClick={() => handleEdit(r.id)} className="rounded-md bg-accent px-3 py-2 text-xs font-medium text-white">
                         저장
@@ -156,7 +156,7 @@ export function ReviewSection({
                         </div>
                       )}
                     </div>
-                    {r.content && <p className="mt-1 text-sm">{r.content}</p>}
+                    {r.content && <p className="mt-1 text-sm"><MentionText text={r.content} /></p>}
                     {r.media_urls && r.media_urls.length > 0 && (
                       <div className="mt-2">
                         <MediaGallery urls={r.media_urls} />

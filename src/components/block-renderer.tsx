@@ -1,5 +1,7 @@
 "use client";
 
+import { MentionText } from "./mention-text";
+
 const API_HOST = process.env.NEXT_PUBLIC_API_HOST || "http://localhost:3002";
 
 interface ContentBlock {
@@ -16,7 +18,7 @@ export function BlockRenderer({ blocks }: { blocks: ContentBlock[] }) {
           case "text":
             return (
               <p key={i} className="text-[15px] leading-relaxed whitespace-pre-wrap">
-                {block.value}
+                <MentionText text={block.value} />
               </p>
             );
           case "image":

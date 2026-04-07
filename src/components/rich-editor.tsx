@@ -8,7 +8,9 @@ import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Link from "@tiptap/extension-link";
+import Mention from "@tiptap/extension-mention";
 import { Video } from "./tiptap-video";
+import mentionSuggestion from "./tiptap-mention-suggestion";
 import { uploadFiles } from "@/lib/upload";
 
 const API_HOST = process.env.NEXT_PUBLIC_API_HOST || "http://localhost:3002";
@@ -48,6 +50,12 @@ export function RichEditor({
       Underline,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Link.configure({ openOnClick: false }),
+      Mention.configure({
+        HTMLAttributes: {
+          class: "inline-block rounded bg-accent/15 px-1 text-accent font-medium",
+        },
+        suggestion: mentionSuggestion,
+      }),
     ],
     content: blocksToHtml(initialBlocks || []),
     editorProps: {
@@ -228,7 +236,13 @@ function blocksToHtml(blocks: ContentBlock[]): string {
         case "text":
           return b.value
             .split("\n")
-            .map((line) => `<p>${line || "<br>"}</p>`)
+            .map((line) => {
+              // @username → mention 노드로 변환
+              const escaped = line
+                ? line.replace(/@([a-zA-Z0-9_]+)/g, '<span data-type="mention" data-id="" data-label="$1" class="inline-block rounded bg-accent/15 px-1 text-accent font-medium">@$1</span>')
+                : "<br>";
+              return `<p>${escaped}</p>`;
+            })
             .join("");
         case "image": {
           const src = b.value.startsWith("http") ? b.value : `${API_HOST}${b.value}`;
@@ -265,7 +279,19 @@ function htmlToBlocks(html: string): ContentBlock[] {
       }
       blocks.push({ type: "video", value: node.src });
     } else {
-      const text = (node as HTMLElement).textContent || "";
+      const el = node as HTMLElement;
+      // 멘션 노드 → @username 으로 변환
+      let text = "";
+      if (el.nodeType === Node.ELEMENT_NODE) {
+        const clone = el.cloneNode(true) as HTMLElement;
+        clone.querySelectorAll("[data-type='mention']").forEach((m) => {
+          const label = m.getAttribute("data-label") || m.textContent?.replace("@", "") || "";
+          m.replaceWith(`@${label}`);
+        });
+        text = clone.textContent || "";
+      } else {
+        text = el.textContent || "";
+      }
       if (text || textBuffer) {
         textBuffer += (textBuffer ? "\n" : "") + text;
       }
