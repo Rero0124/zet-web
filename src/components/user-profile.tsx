@@ -145,7 +145,7 @@ export function UserProfile({ user, initialPosts }: { user: UserData; initialPos
         ) : (
           <div className="divide-y divide-border">
             {questions.map((q) => (
-              <Link key={q.id} href="/qna" className="block px-4 py-4 hover:bg-border/30 transition-colors">
+              <Link key={q.id} href={`/qna/${q.id}`} className="block px-4 py-4 hover:bg-border/30 transition-colors">
                 <h3 className="text-sm font-semibold">{q.title}</h3>
                 <p className="mt-1 text-sm text-muted line-clamp-2">
                   <MentionText text={q.content} />

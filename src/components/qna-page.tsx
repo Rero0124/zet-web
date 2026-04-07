@@ -449,12 +449,16 @@ function QuestionItem({
   return (
     <div className="px-4 py-4">
       {/* 제목 + 메타 */}
-      <button onClick={onToggle} className="w-full text-left">
-        <h3 className="text-[15px] font-semibold leading-snug">{question.title}</h3>
+      <div className="w-full text-left">
+        <Link href={`/qna/${question.id}`} className="hover:text-accent transition-colors">
+          <h3 className="text-[15px] font-semibold leading-snug">{question.title}</h3>
+        </Link>
         {!expanded && question.content && (
-          <p className="mt-1 text-sm text-muted line-clamp-2"><MentionText text={question.content} /></p>
+          <button onClick={onToggle} className="w-full text-left">
+            <p className="mt-1 text-sm text-muted line-clamp-2"><MentionText text={question.content} /></p>
+          </button>
         )}
-      </button>
+      </div>
 
       {/* 태그 */}
       {question.tags.length > 0 && (
