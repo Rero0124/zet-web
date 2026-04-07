@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PostCard } from "./post-card";
 import { api } from "@/lib/api";
 import { getAuthUser } from "@/lib/auth";
@@ -17,11 +17,17 @@ const SORTS = [
 export function FeedControls({ initialPosts }: { initialPosts: Post[] }) {
   const [posts, setPosts] = useState(initialPosts);
   const [cursor, setCursor] = useState(initialPosts.length);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(initialPosts.length >= 15);
+  const [loading, setLoading] = useState(initialPosts.length === 0);
+  const [hasMore, setHasMore] = useState(true);
   const [category, setCategory] = useState("전체");
   const [sort, setSort] = useState("popular");
   const [filtered, setFiltered] = useState(false);
+
+  // Initial load if no server-provided data
+  useEffect(() => {
+    if (initialPosts.length > 0) return;
+    applyFilter("전체", "popular");
+  }, []);
 
   async function applyFilter(newCategory: string, newSort: string) {
     setCategory(newCategory);

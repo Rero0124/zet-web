@@ -14,7 +14,7 @@ export function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [tab, setTab] = useState<"profile" | "posts">("profile");
-  const [form, setForm] = useState({ name: "", birth_date: "", gender: "", region: "" });
+  const [form, setForm] = useState({ username: "", name: "", birth_date: "", gender: "", region: "" });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -26,6 +26,7 @@ export function ProfilePage() {
     }
     setUser(u);
     setForm({
+      username: u.username,
       name: u.name,
       birth_date: u.birth_date || "",
       gender: u.gender || "",
@@ -47,6 +48,7 @@ export function ProfilePage() {
       const data = await api<{ user: User }>(`/users/${user.id}`, {
         method: "PUT",
         body: JSON.stringify({
+          username: form.username || null,
           name: form.name || null,
           birth_date: form.birth_date || null,
           gender: form.gender || null,
@@ -122,6 +124,20 @@ export function ProfilePage() {
             }`}>
               {user.role === "business" ? "기업 회원" : "일반 회원"}
             </span>
+          </div>
+
+          <div>
+            <label className="block text-xs text-muted mb-1">아이디</label>
+            <div className="relative">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted">@</span>
+              <input
+                type="text"
+                value={form.username}
+                onChange={(e) => setForm({ ...form, username: e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, "") })}
+                maxLength={30}
+                className="w-full rounded-lg border border-border bg-background py-3 pl-8 pr-4 text-sm outline-none focus:border-accent"
+              />
+            </div>
           </div>
 
           <div>

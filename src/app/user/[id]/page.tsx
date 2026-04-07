@@ -5,6 +5,7 @@ import type { Post } from "@/lib/types";
 
 interface User {
   id: string;
+  username: string;
   name: string;
   gender: string | null;
   region: string | null;
@@ -38,7 +39,10 @@ export default async function UserProfilePage({
       {/* Profile header */}
       <div className="px-4 py-6 border-b border-border">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold">{user.name}</h1>
+          <div>
+            <h1 className="text-xl font-bold">{user.name}</h1>
+            <p className="text-sm text-muted">@{user.username}</p>
+          </div>
           <span className={`rounded-full px-3 py-1 text-xs font-medium ${
             user.role === "business" ? "bg-accent/10 text-accent" : "bg-border text-muted"
           }`}>

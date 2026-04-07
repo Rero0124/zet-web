@@ -34,3 +34,26 @@ export interface KeywordTrend {
   keyword: string;
   count: number;
 }
+
+export interface Question {
+  id: string;
+  post_id: string;
+  user_id: string;
+  content: string;
+  answer_count: number;
+  created_at: string;
+  updated_at: string;
+  user_name: string;
+  user_username: string;
+}
+
+export interface Answer {
+  id: string;
+  question_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  user_name: string;
+  user_username: string;
+}

@@ -13,13 +13,12 @@ export function RegisterForm() {
   const [form, setForm] = useState({
     email: "",
     password: "",
+    username: "",
     name: "",
     birth_date: "",
     gender: "",
     region: "",
     is_business: false,
-    business_name: "",
-    registration_no: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,11 +31,6 @@ export function RegisterForm() {
     e.preventDefault();
     setError("");
 
-    if (form.is_business && (!form.business_name || !form.registration_no)) {
-      setError("기업명과 사업자등록번호를 입력해주세요");
-      return;
-    }
-
     setLoading(true);
     try {
       const payload = {
@@ -44,8 +38,6 @@ export function RegisterForm() {
         birth_date: form.birth_date || null,
         gender: form.gender || null,
         region: form.region || null,
-        business_name: form.is_business ? form.business_name : undefined,
-        registration_no: form.is_business ? form.registration_no : undefined,
       };
       const data = await api<{ user: User }>("/auth/register", {
         method: "POST",
@@ -76,6 +68,19 @@ export function RegisterForm() {
         required
         className="rounded-lg border border-border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
       />
+      <div className="relative">
+        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted">@</span>
+        <input
+          type="text"
+          placeholder="아이디"
+          value={form.username}
+          onChange={(e) => update("username", e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, ""))}
+          required
+          minLength={3}
+          maxLength={30}
+          className="w-full rounded-lg border border-border bg-background py-3 pl-8 pr-4 text-sm outline-none focus:border-accent"
+        />
+      </div>
       <input
         type="email"
         placeholder="이메일"
@@ -140,25 +145,6 @@ export function RegisterForm() {
           <p className="text-xs text-muted">게시글(광고)을 작성하려면 기업 회원이어야 합니다</p>
         </div>
       </label>
-
-      {form.is_business && (
-        <div className="flex flex-col gap-3 rounded-lg border border-accent/30 bg-accent/5 p-4">
-          <input
-            type="text"
-            placeholder="기업명"
-            value={form.business_name}
-            onChange={(e) => update("business_name", e.target.value)}
-            className="rounded-lg border border-border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
-          />
-          <input
-            type="text"
-            placeholder="사업자등록번호 (000-00-00000)"
-            value={form.registration_no}
-            onChange={(e) => update("registration_no", e.target.value)}
-            className="rounded-lg border border-border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
-          />
-        </div>
-      )}
 
       <button
         type="submit"

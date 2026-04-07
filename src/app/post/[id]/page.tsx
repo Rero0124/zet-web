@@ -30,7 +30,6 @@ export default async function PostPage({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
-      {/* Post content — server rendered */}
       <article>
         {post.category && (
           <span className="inline-block rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent mb-3">
@@ -49,12 +48,8 @@ export default async function PostPage({
             ))}
           </div>
         )}
-
-        {/* Stats + interactive buttons (client) */}
         <PostActions post={post} />
       </article>
-
-      {/* Reviews — server rendered list + client interactive form/edit/delete */}
       <ReviewSection postId={id} initialReviews={reviews} />
     </div>
   );

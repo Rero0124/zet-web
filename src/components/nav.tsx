@@ -9,6 +9,7 @@ const links = [
   { href: "/", label: "피드" },
   { href: "/trending", label: "트렌드" },
   { href: "/search", label: "검색" },
+  { href: "/qna", label: "Q&A" },
 ];
 
 export function Nav() {
@@ -54,7 +55,7 @@ export function Nav() {
                 </Link>
               )}
               <Link href="/profile" className="text-sm font-medium hover:text-accent transition-colors">
-                {user.name}
+                @{user.username}
               </Link>
               <button
                 onClick={handleLogout}
