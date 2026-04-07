@@ -14,7 +14,7 @@ export function MentionText({ text }: { text: string }) {
         /^@[a-zA-Z0-9_]+$/.test(part) ? (
           <Link
             key={i}
-            href={`/user/by/${part.slice(1)}`}
+            href={`/user/${part.slice(1)}`}
             className="text-accent font-medium hover:underline"
             onClick={(e) => e.stopPropagation()}
           >

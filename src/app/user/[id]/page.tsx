@@ -1,17 +1,21 @@
 import { notFound } from "next/navigation";
 import { api } from "@/lib/api";
-import { PostCard } from "@/components/post-card";
+import { UserProfile } from "@/components/user-profile";
 import type { Post } from "@/lib/types";
 
-interface User {
+interface UserData {
   id: string;
   username: string;
   name: string;
+  birth_date: string | null;
   gender: string | null;
   region: string | null;
   role: string;
+  points: number;
   created_at: string;
 }
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default async function UserProfilePage({
   params,
@@ -20,56 +24,28 @@ export default async function UserProfilePage({
 }) {
   const { id } = await params;
 
-  let user: User;
-  let posts: Post[];
+  let user: UserData;
 
   try {
-    const [userRes, postsRes] = await Promise.all([
-      api<{ user: User }>(`/users/${id}`),
-      api<{ posts: Post[] }>(`/users/${id}/posts`),
-    ]);
-    user = userRes.user;
-    posts = postsRes.posts;
+    // UUID면 id로, 아니면 username으로 조회
+    if (UUID_RE.test(id)) {
+      const data = await api<{ user: UserData }>(`/users/${id}`);
+      user = data.user;
+    } else {
+      const data = await api<{ user: UserData }>(`/users/by-username/${encodeURIComponent(id)}`);
+      user = data.user;
+    }
   } catch {
     notFound();
   }
 
-  return (
-    <div className="mx-auto max-w-2xl">
-      {/* Profile header */}
-      <div className="px-4 py-6 border-b border-border">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold">{user.name}</h1>
-            <p className="text-sm text-muted">@{user.username}</p>
-          </div>
-          <span className={`rounded-full px-3 py-1 text-xs font-medium ${
-            user.role === "business" ? "bg-accent/10 text-accent" : "bg-border text-muted"
-          }`}>
-            {user.role === "business" ? "기업 회원" : "일반 회원"}
-          </span>
-        </div>
-        <div className="mt-2 flex gap-4 text-sm text-muted">
-          {user.region && <span>{user.region}</span>}
-          <span>가입일 {new Date(user.created_at).toLocaleDateString("ko-KR")}</span>
-        </div>
-      </div>
+  let posts: Post[] = [];
+  try {
+    const data = await api<{ posts: Post[] }>(`/users/${user.id}/posts`);
+    posts = data.posts;
+  } catch {
+    // ignore
+  }
 
-      {/* Posts */}
-      <div>
-        <h2 className="px-4 pt-4 pb-2 text-sm font-semibold">
-          게시글 {posts.length > 0 && `(${posts.length})`}
-        </h2>
-        {posts.length === 0 ? (
-          <div className="py-16 text-center text-muted">
-            <p>작성한 게시글이 없습니다</p>
-          </div>
-        ) : (
-          posts.map((post) => (
-            <PostCard key={post.id} post={post} />
-          ))
-        )}
-      </div>
-    </div>
-  );
+  return <UserProfile user={user} initialPosts={posts} />;
 }
