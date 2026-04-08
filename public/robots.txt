@@ -1,26 +1,17 @@
+# *
 User-agent: *
 Allow: /
 
-# AI crawlers
+# GPTBot
 User-agent: GPTBot
 Allow: /
 
-User-agent: ChatGPT-User
+# Claude-Web
+User-agent: Claude-Web
 Allow: /
 
-User-agent: ClaudeBot
-Allow: /
+# Host
+Host: https://zet.kr
 
-User-agent: PerplexityBot
-Allow: /
-
-User-agent: Google-Extended
-Allow: /
-
-# AI-optimized endpoints
-# API: https://zet.kr/ai/search?q={query}
-# API: https://zet.kr/ai/product/{id}
-# API: https://zet.kr/ai/trending
-# API: https://zet.kr/ai/category/{name}
-
+# Sitemaps
 Sitemap: https://zet.kr/sitemap.xml
