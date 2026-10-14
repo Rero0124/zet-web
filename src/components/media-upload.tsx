@@ -1,28 +1,33 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { isVideoUrl, resolveMediaUrl } from "@/lib/format";
 import { uploadFiles } from "@/lib/upload";
-
-const API_HOST = process.env.NEXT_PUBLIC_API_HOST || "http://localhost:3002";
+import { ImageIcon, XIcon } from "./icons";
+import { toast } from "./ui/toast";
 
 export function MediaUpload({
   urls,
   onChange,
+  max = 10,
 }: {
   urls: string[];
   onChange: (urls: string[]) => void;
+  max?: number;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
   async function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files || []);
+    const files = Array.from(e.target.files || []).slice(0, max - urls.length);
     if (files.length === 0) return;
     setUploading(true);
     try {
       const newUrls = await uploadFiles(files);
       onChange([...urls, ...newUrls]);
-    } catch { /* */ }
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "업로드하지 못했어요", { tone: "error" });
+    }
     setUploading(false);
     if (inputRef.current) inputRef.current.value = "";
   }
@@ -32,50 +37,46 @@ export function MediaUpload({
   }
 
   return (
-    <div>
-      {/* Preview */}
-      {urls.length > 0 && (
-        <div className="flex gap-2 flex-wrap mb-2">
-          {urls.map((url, i) => {
-            const fullUrl = url.startsWith("http") ? url : `${API_HOST}${url}`;
-            const isVideo = /\.(mp4|mov|webm|avi)$/i.test(url);
-            return (
-              <div key={i} className="relative group">
-                {isVideo ? (
-                  <video src={fullUrl} className="h-20 w-20 rounded-lg object-cover" muted />
-                ) : (
-                  <img src={fullUrl} alt="" className="h-20 w-20 rounded-lg object-cover" />
-                )}
-                <button
-                  type="button"
-                  onClick={() => remove(i)}
-                  className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  x
-                </button>
-              </div>
-            );
-          })}
-        </div>
+    <div className="no-scrollbar flex gap-2 overflow-x-auto pt-1.5">
+      {urls.length < max && (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="flex h-20 w-20 shrink-0 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border text-xs text-muted transition-colors hover:bg-subtle disabled:opacity-50"
+        >
+          {uploading ? (
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          ) : (
+            <ImageIcon size={20} />
+          )}
+          <span>
+            {urls.length}/{max}
+          </span>
+        </button>
       )}
-
-      {/* Upload button */}
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*,video/*"
-        multiple
-        onChange={handleFiles}
-        className="hidden"
-      />
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        disabled={uploading}
-        className="rounded-lg border border-border px-3 py-1.5 text-sm text-muted hover:bg-border transition-colors disabled:opacity-50"
-      >
-        {uploading ? "업로드 중..." : "사진/동영상 추가"}
-      </button>
+      {urls.map((url, i) => {
+        const fullUrl = resolveMediaUrl(url);
+        return (
+          <div key={`${url}-${i}`} className="relative shrink-0">
+            {isVideoUrl(url) ? (
+              <video src={fullUrl} className="h-20 w-20 rounded-xl object-cover" muted />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={fullUrl} alt="" className="h-20 w-20 rounded-xl border border-border object-cover" />
+            )}
+            <button
+              type="button"
+              onClick={() => remove(i)}
+              aria-label="첨부 삭제"
+              className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-background"
+            >
+              <XIcon size={12} strokeWidth={2.6} />
+            </button>
+          </div>
+        );
+      })}
+      <input ref={inputRef} type="file" accept="image/*,video/*" multiple onChange={handleFiles} className="hidden" />
     </div>
   );
 }

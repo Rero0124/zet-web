@@ -1,18 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { AGE_GROUPS, GENDERS } from "@/lib/constants";
+import { formatCount } from "@/lib/format";
+import type { Post } from "@/lib/types";
+import { TrendIcon } from "./icons";
+import { MiniPostRow } from "./mini-post-card";
+import { PageColumn } from "./page-column";
 import { SparkLine } from "./spark-line";
+import { EmptyState } from "./ui/empty-state";
+import { Skeleton } from "./ui/skeleton";
 
 const PERIODS = [
   { value: "day", label: "오늘" },
   { value: "week", label: "이번 주" },
   { value: "month", label: "이번 달" },
 ];
-
-const AGE_GROUPS = ["전체", "10대", "20대", "30대", "40대", "50대 이상"];
-const GENDERS = ["전체", "남성", "여성"];
 
 interface TimePoint {
   date: string;
@@ -25,101 +30,135 @@ interface KeywordItem {
   series: TimePoint[];
 }
 
+function Chips({
+  options,
+  value,
+  onChange,
+  allLabel,
+}: {
+  options: string[];
+  value: string;
+  onChange: (v: string) => void;
+  allLabel: string;
+}) {
+  return (
+    <div className="no-scrollbar flex gap-1.5 overflow-x-auto">
+      {["", ...options].map((o) => (
+        <button
+          key={o || "all"}
+          onClick={() => onChange(o)}
+          aria-pressed={value === o}
+          className={`shrink-0 rounded-full px-3 py-1 text-[13px] font-medium transition-colors ${
+            value === o ? "bg-accent/10 text-accent ring-1 ring-accent/40" : "bg-subtle text-foreground/80 hover:bg-border"
+          }`}
+        >
+          {o || allLabel}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function TrendingPage() {
   const [period, setPeriod] = useState("week");
-  const [ageGroup, setAgeGroup] = useState("전체");
-  const [gender, setGender] = useState("전체");
-  const [keywords, setKeywords] = useState<KeywordItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [ageGroup, setAgeGroup] = useState("");
+  const [gender, setGender] = useState("");
+  const [keywords, setKeywords] = useState<KeywordItem[] | null>(null);
+  const [popular, setPopular] = useState<Post[] | null>(null);
 
   useEffect(() => {
-    setLoading(true);
+    let cancelled = false;
     const params = new URLSearchParams({ period });
-    if (ageGroup !== "전체") params.set("age_group", ageGroup);
-    if (gender !== "전체") params.set("gender", gender);
+    if (ageGroup) params.set("age_group", ageGroup);
+    if (gender) params.set("gender", gender);
 
     api<{ keywords: KeywordItem[] }>(`/trending/keywords?${params}`)
-      .then((data) => setKeywords(data.keywords))
-      .catch(() => setKeywords([]))
-      .finally(() => setLoading(false));
+      .then((data) => !cancelled && setKeywords(data.keywords))
+      .catch(() => !cancelled && setKeywords([]));
+    return () => {
+      cancelled = true;
+    };
   }, [period, ageGroup, gender]);
 
+  useEffect(() => {
+    api<{ posts: Post[] }>(`/feed?sort=popular&limit=10`)
+      .then((d) => setPopular(d.posts))
+      .catch(() => setPopular([]));
+  }, []);
+
+  const audience = [ageGroup, gender].filter(Boolean).join(" ") || "전체 사용자";
+
   return (
-    <div className="mx-auto max-w-2xl">
-      {/* Filters */}
-      <div className="sticky top-14 z-40 border-b border-border bg-background/80 backdrop-blur-sm px-4 py-3 space-y-2">
-        <div className="flex gap-1">
+    <PageColumn>
+      {/* 필터 */}
+      <div className="sticky top-14 z-30 space-y-2.5 border-b border-border bg-background/90 px-4 py-3 backdrop-blur-md">
+        <div role="tablist" className="flex rounded-xl bg-subtle p-1">
           {PERIODS.map((p) => (
             <button
               key={p.value}
+              role="tab"
+              aria-selected={period === p.value}
               onClick={() => setPeriod(p.value)}
-              className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
-                period === p.value ? "bg-foreground text-background" : "text-muted hover:bg-border"
+              className={`flex-1 rounded-lg py-1.5 text-sm font-medium transition-colors ${
+                period === p.value ? "bg-background font-semibold shadow-sm" : "text-muted hover:text-foreground"
               }`}
             >
               {p.label}
             </button>
           ))}
         </div>
-        <div className="flex gap-2 text-sm">
-          <select
-            value={ageGroup}
-            onChange={(e) => setAgeGroup(e.target.value)}
-            className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm outline-none"
-          >
-            {AGE_GROUPS.map((ag) => (
-              <option key={ag} value={ag}>{ag === "전체" ? "나이대" : ag}</option>
-            ))}
-          </select>
-          <select
-            value={gender}
-            onChange={(e) => setGender(e.target.value)}
-            className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm outline-none"
-          >
-            {GENDERS.map((g) => (
-              <option key={g} value={g}>{g === "전체" ? "성별" : g}</option>
-            ))}
-          </select>
-        </div>
+        <Chips options={AGE_GROUPS} value={ageGroup} onChange={setAgeGroup} allLabel="모든 연령" />
+        <Chips options={GENDERS} value={gender} onChange={setGender} allLabel="모든 성별" />
       </div>
 
-      {/* Keyword list */}
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-        </div>
-      ) : keywords.length === 0 ? (
-        <div className="py-20 text-center text-muted">
-          <p className="text-lg">트렌드 데이터가 없습니다</p>
-          <p className="mt-1 text-sm">필터를 변경해보세요</p>
-        </div>
-      ) : (
-        <div>
-          {keywords.map((kw, i) => (
-            <Link
-              key={kw.keyword}
-              href={`/trending/${encodeURIComponent(kw.keyword)}`}
-              className="flex items-center gap-4 px-4 py-4 border-b border-border hover:bg-card/50 transition-colors"
-            >
-              {/* Rank */}
-              <span className="w-8 text-lg font-bold text-accent text-center shrink-0">
-                {i + 1}
-              </span>
+      <div className="border-b border-border">
+        <MiniPostRow title="지금 인기 있는 제품" posts={popular} />
+      </div>
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold">#{kw.keyword}</div>
-                <div className="text-xs text-muted mt-0.5">반응 {kw.count}건</div>
-              </div>
-
-              {/* Sparkline */}
-              <div className="w-24 h-10 shrink-0">
-                <SparkLine data={kw.series} />
-              </div>
-            </Link>
-          ))}
+      <section>
+        <div className="px-4 pb-1 pt-5">
+          <h2 className="text-[15px] font-bold">
+            반응이 몰린 키워드 · {audience}
+          </h2>
+          <p className="mt-0.5 text-xs text-muted">좋아요·리뷰·저장 등 실제 반응 수 기준</p>
         </div>
-      )}
-    </div>
+
+        {keywords === null ? (
+          <div className="flex flex-col gap-1 px-4 py-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full rounded-xl" />
+            ))}
+          </div>
+        ) : keywords.length === 0 ? (
+          <EmptyState
+            icon={<TrendIcon size={24} />}
+            title="이 조건의 트렌드 데이터가 아직 없어요"
+            description="기간을 늘리거나 연령·성별 조건을 바꿔보세요."
+          />
+        ) : (
+          <ol>
+            {keywords.map((kw, i) => (
+              <li key={kw.keyword}>
+                <Link
+                  href={`/trending/${encodeURIComponent(kw.keyword)}`}
+                  className="flex items-center gap-4 px-4 py-3.5 transition-colors hover:bg-subtle/60"
+                >
+                  <span className={`w-6 shrink-0 text-center text-lg font-bold ${i < 3 ? "text-accent" : "text-muted"}`}>
+                    {i + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-[15px] font-semibold">#{kw.keyword}</div>
+                    <div className="mt-0.5 text-xs text-muted">반응 {formatCount(kw.count)}건</div>
+                  </div>
+                  <div className="h-9 w-20 shrink-0" aria-hidden="true">
+                    <SparkLine data={kw.series} />
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
+    </PageColumn>
   );
 }

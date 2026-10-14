@@ -6,12 +6,13 @@ import Link from "next/link";
  * 텍스트 안의 @username을 프로필 링크로 변환하여 렌더링
  */
 export function MentionText({ text }: { text: string }) {
-  const parts = text.split(/(@[a-zA-Z0-9_]+)/g);
+  // 아이디에는 . 도 허용되지만 문장 끝 마침표는 제외
+  const parts = text.split(/(@[a-zA-Z0-9_](?:[a-zA-Z0-9._]*[a-zA-Z0-9_])?)/g);
 
   return (
     <>
       {parts.map((part, i) =>
-        /^@[a-zA-Z0-9_]+$/.test(part) ? (
+        /^@[a-zA-Z0-9_](?:[a-zA-Z0-9._]*[a-zA-Z0-9_])?$/.test(part) ? (
           <Link
             key={i}
             href={`/user/${part.slice(1)}`}

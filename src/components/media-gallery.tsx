@@ -1,29 +1,29 @@
 "use client";
 
-const API_HOST = process.env.NEXT_PUBLIC_API_HOST || "http://localhost:3002";
+import { isVideoUrl, resolveMediaUrl } from "@/lib/format";
 
+/** 리뷰 첨부 미디어 — 썸네일 줄, 누르면 원본 새 탭 */
 export function MediaGallery({ urls }: { urls: string[] }) {
   if (urls.length === 0) return null;
 
   return (
-    <div className={`grid gap-2 ${urls.length === 1 ? "grid-cols-1" : urls.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
+    <div className="no-scrollbar flex gap-2 overflow-x-auto">
       {urls.map((url, i) => {
-        const fullUrl = url.startsWith("http") ? url : `${API_HOST}${url}`;
-        const isVideo = /\.(mp4|mov|webm|avi)$/i.test(url);
-        return isVideo ? (
+        const fullUrl = resolveMediaUrl(url);
+        return isVideoUrl(url) ? (
           <video
             key={i}
             src={fullUrl}
             controls
-            className="w-full rounded-lg max-h-80 object-cover"
+            playsInline
+            preload="metadata"
+            className="h-28 w-28 shrink-0 rounded-xl bg-black object-cover"
           />
         ) : (
-          <img
-            key={i}
-            src={fullUrl}
-            alt=""
-            className="w-full rounded-lg max-h-80 object-cover"
-          />
+          <a key={i} href={fullUrl} target="_blank" rel="noopener noreferrer" className="shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={fullUrl} alt="" loading="lazy" className="h-28 w-28 rounded-xl border border-border object-cover" />
+          </a>
         );
       })}
     </div>

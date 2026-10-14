@@ -1,9 +1,31 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { api } from "@/lib/api";
-import { PostActions } from "@/components/post-actions";
-import { ReviewSection } from "@/components/review-section";
-import { BlockRenderer } from "@/components/block-renderer";
+import { postMedia, postText, splitHeadline } from "@/lib/format";
+import { PostDetail } from "@/components/post-detail";
 import type { Post, Reaction } from "@/lib/types";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const { post } = await api<{ post: Post }>(`/posts/${id}`);
+    const { headline, body } = splitHeadline(postText(post));
+    const image = postMedia(post).find((m) => m.type === "image");
+    const title = headline || "게시물";
+    const description = [post.author_name, body.replace(/\s+/g, " ").slice(0, 100)].filter(Boolean).join(" · ");
+    return {
+      title,
+      description,
+      openGraph: { title, description, images: image ? [image.url] : undefined },
+    };
+  } catch {
+    return { title: "게시물" };
+  }
+}
 
 export default async function PostPage({
   params,
@@ -28,29 +50,5 @@ export default async function PostPage({
 
   const reviews = reactions.filter((r) => r.reaction_type === "review");
 
-  return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
-      <article>
-        {post.category && (
-          <span className="inline-block rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent mb-3">
-            {post.category}
-          </span>
-        )}
-        {post.blocks && post.blocks.length > 0 ? (
-          <BlockRenderer blocks={post.blocks} />
-        ) : (
-          <p className="text-base leading-relaxed whitespace-pre-wrap">{post.content}</p>
-        )}
-        {post.tags.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {post.tags.map((tag) => (
-              <span key={tag} className="text-sm text-accent">#{tag}</span>
-            ))}
-          </div>
-        )}
-        <PostActions post={post} />
-      </article>
-      <ReviewSection postId={id} initialReviews={reviews} />
-    </div>
-  );
+  return <PostDetail initialPost={post} initialReviews={reviews} />;
 }

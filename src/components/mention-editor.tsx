@@ -41,6 +41,19 @@ export function MentionEditor({
   const isComposing = useRef(false);
   const lastValue = useRef(value);
 
+  // 초기 값이 있으면(리뷰 수정 등) 에디터에 채워 넣기
+  useEffect(() => {
+    const el = editorRef.current;
+    if (!el || !value) return;
+    el.innerHTML = "";
+    value.split("\n").forEach((line, i) => {
+      if (i > 0) el.appendChild(document.createElement("br"));
+      el.appendChild(document.createTextNode(line));
+    });
+    // 마운트 시 한 번만 실행
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // 외부 value 변경 시 에디터 동기화 (초기 렌더링 또는 외부 리셋)
   useEffect(() => {
     if (!editorRef.current) return;

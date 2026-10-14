@@ -40,19 +40,24 @@ async function flush() {
   }
 }
 
-// Flush on page unload
+function flushWithBeacon() {
+  if (queue.length === 0) return;
+  const blob = new Blob(
+    [JSON.stringify({ interactions: queue })],
+    { type: "application/json" },
+  );
+  navigator.sendBeacon(
+    `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api"}/interactions/batch`,
+    blob,
+  );
+  queue = [];
+}
+
+// Flush on page unload (모바일 Safari는 beforeunload가 불안정해 pagehide/visibilitychange도 사용)
 if (typeof window !== "undefined") {
-  window.addEventListener("beforeunload", () => {
-    if (queue.length > 0) {
-      const blob = new Blob(
-        [JSON.stringify({ interactions: queue })],
-        { type: "application/json" },
-      );
-      navigator.sendBeacon(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api"}/interactions/batch`,
-        blob,
-      );
-    }
+  window.addEventListener("pagehide", flushWithBeacon);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") flushWithBeacon();
   });
 }
 
@@ -62,6 +67,13 @@ export function trackImpression(postId: string) {
 
 export function trackClick(postId: string) {
   enqueue({ post_id: postId, interaction_type: "click" });
+}
+
+/** 광고 링크(CTA)로 외부 이동 */
+export function trackCta(postId: string) {
+  enqueue({ post_id: postId, interaction_type: "cta" });
+  // 외부 페이지로 이동하므로 즉시 전송
+  flushWithBeacon();
 }
 
 export function trackDwell(postId: string, durationMs: number) {

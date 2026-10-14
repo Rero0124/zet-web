@@ -2,12 +2,18 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #111418;
   --accent: #2563eb;
   --accent-hover: #1d4ed8;
-  --border: #e5e7eb;
+  --border: #e8eaed;
   --muted: #6b7280;
   --card: #ffffff;
+  --subtle: #f4f5f7;
+  --like: #f43f5e;
+  --star: #f59e0b;
+  --danger: #ef4444;
+  --success: #16a34a;
+  --series-2: #eb6834;
 }
 
 @theme inline {
@@ -18,26 +24,76 @@
   --color-border: var(--border);
   --color-muted: var(--muted);
   --color-card: var(--card);
-  --font-sans: var(--font-geist-sans);
+  --color-subtle: var(--subtle);
+  --color-like: var(--like);
+  --color-star: var(--star);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-series-2: var(--series-2);
+  --font-sans: var(--font-geist-sans), "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --accent: #3b82f6;
-    --accent-hover: #60a5fa;
-    --border: #27272a;
-    --muted: #a1a1aa;
-    --card: #18181b;
+    --background: #0b0b0d;
+    --foreground: #eef0f3;
+    --accent: #4b8bff;
+    --accent-hover: #6ea2ff;
+    --border: #26272c;
+    --muted: #9ca3af;
+    --card: #141518;
+    --subtle: #1b1c20;
+    --like: #fb7185;
+    --star: #fbbf24;
+    --danger: #f87171;
+    --success: #4ade80;
+    --series-2: #d95926;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 가로 스크롤 영역(칩, 캐러셀)의 스크롤바 숨김 */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* iOS 홈 인디케이터 영역 확보 */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sheet-in {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.animate-toast-in { animation: toast-in 180ms ease-out; }
+.animate-sheet-in { animation: sheet-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.animate-pop { animation: pop 280ms ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-toast-in, .animate-sheet-in, .animate-pop { animation: none; }
 }
 
 /* Tiptap editor styles */
