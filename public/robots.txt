@@ -11,7 +11,8 @@ User-agent: Claude-Web
 Allow: /
 
 # Host
-Host: https://zet.kr
+Host: https://zet.bz
 
 # Sitemaps
-Sitemap: https://zet.kr/sitemap.xml
+Sitemap: https://zet.bz/sitemap.xml
+Sitemap: https://zet.bz/server-sitemap.xml
