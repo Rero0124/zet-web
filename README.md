@@ -41,7 +41,8 @@ src/
 │   ├── trending/             # 트렌드, [keyword]/ 키워드 상세
 │   ├── qna/                  # Q&A 목록(?post= 로 제품 지정), [id]/ 상세
 │   ├── write/                # 광고 만들기 (브랜드 회원)
-│   └── login/, register/     # ?next= 로 로그인 후 원래 화면 복귀
+│   ├── login/, register/     # ?next= 로 로그인 후 원래 화면 복귀
+│   └── server-sitemap.xml/   # 요청 때 API 로 글·질문·브랜드 프로필 주소를 모은 사이트맵 (아래 '검색 엔진')
 ├── components/
 │   ├── ui/                   # avatar, toast, login-prompt, menu, skeleton, stars, empty-state
 │   ├── icons.tsx             # SVG 아이콘 + 브랜드 인증 배지
@@ -73,6 +74,12 @@ src/
 - **트렌드**: 기간·연령·성별 칩, 인기 제품 줄, 키워드 순위 + 스파크라인 → 키워드 상세에서 관련 제품까지 이어짐.
 - **Q&A**: 제품을 검색해서 선택(게시글 ID 입력 불필요), 질문마다 제품 표시, 브랜드 답변 배지.
 - **로그인이 필요한 동작**(좋아요·저장·리뷰·질문·팔로우)은 비로그인 시 로그인 시트를 띄우고, 로그인 후 원래 화면으로 돌아옴.
+
+## 검색 엔진
+
+- `pnpm build` 뒤 `postbuild`(next-sitemap, `next-sitemap.config.js`)가 `public/robots.txt`·`sitemap.xml`(색인)·`sitemap-0.xml` 을 다시 만든다 — 주소는 `https://zet.bz`. 정적 사이트맵에서 로그인·회원가입·글쓰기·프로필 편집·검색은 뺐고, 요청마다 렌더링해 빌드 목록에 없는 `/qna` 는 `additionalPaths` 로 넣는다.
+- `/server-sitemap.xml`(`src/app/server-sitemap.xml/route.ts`): 요청 때 `/feed?sort=latest`·`/questions`·`/brands` 를 끝까지 읽어(목록마다 최대 5,000개) 글·질문·브랜드 프로필 주소를 낸다. `Cache-Control: public, max-age=3600`. API 가 실패하면 500(검색 엔진이 나중에 다시 읽음).
+- demo.zet.bz 도 같은 코드로 빌드되지만 nginx 가 `X-Robots-Tag: noindex` 를 붙여 검색에서 빠진다.
 
 ## 인증
 
